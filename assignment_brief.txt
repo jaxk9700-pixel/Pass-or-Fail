@@ -1,0 +1,277 @@
+[]
+
+  -------------------- --------------------------------------------------
+  Module Level:        6
+
+  Module Code:         CSY3023
+
+  Credit Value:        20
+
+  Module Name:         Cybersecurity and Cryptography
+
+  Module Leader:       
+  -------------------- --------------------------------------------------
+
+  -------------------- --------------------------------------------------
+  Assessment Code:     Resit AS1
+
+  Assessment Type:     Open book, research based
+
+  Assessment           Report- term paper
+  Deliverable(s):      
+
+  Weighting (%):       50%
+
+  Submission dates:    Sunday 13th July 2025
+
+  Feedback and Grades  Please see the Assessment and submission section
+  due:                 of the module NILE site.
+  -------------------- --------------------------------------------------
+
+The University of Northampton Policy on Plagiarism will be strictly
+implemented.
+
+You may be asked to attend to a Viva Voce should there be any doubts in
+the originality of the submitted work. The paper should be written in
+your own words.
+
+You may be invited to attend an in-person or online presentation to
+present and clarify the substance of your submitted work.
+
+Read the whole assessment brief before starting to work on the
+Assessment Tasks.
+
+Assessment Task Guidance Description
+
+Please, see the assessment information link on Nile.
+
+I.  Learning Outcomes aligned to this assessment:
+
+Please, see the assessment information link on Nile.
+
+This assignment is a report of one of the following:
+
+1.  Online application vulnerability analysis with remediation
+
+2.  Security technology that thwarts cyber threats
+
+Assume the role of a Cyber Security professional with expertise in
+applied Cryptography.
+
+Write a report, in the form of a term paper, in which you present the
+result of one of the following. Describe your chosen ~~case~~ topic in
+detail and explain how you would implement and enforce your
+recommendations ~~in order~~ to solve the security requirements of
+Organisations or User group.
+
+1.  A research and investigation into the security implications of an
+    online Application.
+
+2.  An in-depth analysis of a Security Technology that can provide
+    online security when deployed.
+
+In your paper, you should;
+
+1)  Find and experiment with a software tool that could potentially be
+    used as part of the provision of Security within the context of your
+    chosen topic. You can either;
+
+    a.  Use an Open-Source security tool
+
+  Or
+
+b.  Develop your own Software
+
+Note:
+
+-   Cryptography should be ~~at~~ the main basis of your solution and
+    ~~possible~~ recommendations.
+
+-   Your paper should be clear, concise, and written in a technical
+    context.
+
+-   You will be expected to present^ your findings to the rest of the
+    class.
+
+-   In the first instance, you may discuss the topic of your choice with
+    your tutor during the assignment support session.
+
+Your Task in general
+
+You are expected to research and investigate online applications
+security issues or technologies that could thwart security threats.
+
+This can be a survey of an area, construction of a security software
+system, an analysis of a security tool, or a comparative study. In
+essence, conduct a vulnerability assessment.
+
+In general, you will-
+
+-   Build an Application/Technology profile
+
+-   Identify relevant security characteristics or features of your
+    chosen topic, [vulnerabilities, threats, attacks on an online
+    application] or [security protection offered by a security
+    technology]
+
+-   Experiment with a suitable software tool and give an in-depth
+    account the tool or review alternative tools.
+
+-   Recommend a solution based on your findings.
+
+A set of suggested areas is included below. You may select one of the
+topics, or you may propose your own.
+
+The output of this investigation will be a paper of 2000-4000 words (see
+a sample technical paper on Nile). These papers may be made available to
+the rest of the class.
+
+A typical technical paper structure is as follows.
+
+Abstract/Preface
+
+II. Introduction: background information, related work, major issues,
+    and scope of the investigation.
+
+III. Main Body: your approach to address the issue(s) of your choice,
+     your findings, review- comparative analysis- detailed technical
+     underpinning, security software review, use & analysis*,
+     development of solutions etc. You can break this part into several
+     sections.
+
+IV. Summary: conclusions, recommendations- your contribution in general.
+
+V.  References: books, journals, papers, websites, etc.
+
+Assessment will be based on taking the following criteria into
+consideration.
+
+1.  The level of challenge met by the student.
+
+2.  Knowledgeable and logical adherence to issues.
+
+3.  Evidence of clearly focused and relevant research effort.
+
+4.  Effective, appropriate, and clear choice and use of S/W tool.
+
+5.  Written and presented with clarity and creativity.
+
+Deliverables
+
+1.  Technical report submitted through Turnitin on Nile.
+
+2.  PowerPoint presentation^ appended to the main report
+
+Research Paper possible topics**
+
+-   Cyber Security issues
+
+-   Penetration testing & Ethical Hacking ~~for improved security~~
+
+-   Practical Cryptographic systems
+
+    -   Security Standards,
+
+    -   Encryption algorithms, Hash functions with appendix and message
+        recovery models,
+
+    -   Authentication Systems,
+
+    -   PKI
+
+-   Secure Protocols: IPSec, SSL/TLS
+
+-   WiFi
+
+-   Mobile technologies
+
+-   Online Application Security
+
+-   Systems Security- Windows/ Unix/Linux cryptographic schemes
+
+^The purpose of the presentation is twofold.
+
+  a) Demonstrate your findings with the rest of the class, in
+  particular, your assignment practical experimentation.
+
+  b) Demonstrate your awareness and knowledge of your chosen topic for
+  assessment purposes.
+
+  Therefore, this should be through a small number of informative power
+  point slides, [using screen shots] or give a demo of the software
+  tool.
+
+**Note: The above list is provided as a “general” guide.
+
+You may, also use the following link~~s~~ to find other topics of your
+own choice. The articles and papers within these sites are, normally,
+free. But may require you to register or subscribe. In which case, you
+might wish to register as a University of Northampton Student and give
+your course details.
+
+  http://www.techrepublic.com/topic/security/
+
+Grading:
+
+The full grading criteria table is available to view on Nile.
+
+Grading criteria will be based on taking the following into
+consideration.
+
+1 The level of challenge met by the student.
+
+2. Knowledgeable and logical adherence to issues.
+
+3. Evidence of clearly focused and relevant research effort.
+
+4. Effective, appropriate, and clear choice and use of S/W tool.
+
+5. Written with appropriate technical detail
+
+6. Presented with clarity and creativity.
+
+Use of Generative AI (Artificial Intelligence) within this assessment:
+
+This assignment falls into the following category:
+
+Category 2: GenAI can be used in an assistive role
+
+You may make use of GenAI in your assessment in an assistive role, but
+you must acknowledge this appropriately. Ref to the UON guidance on the
+different types of GenAI use, what you need to acknowledge and how you
+should do this.
+
+Please access the following guidance from the University of Northampton
+on the use of Generative AI within assessments.
+
+Assessment Submission
+
+To submit your work electronically, please go to the ‘Submission’ area
+on the NILE site and use the relevant submission points to upload the
+assignment deliverables. The deadline for this is 11.59pm (UK local
+time) on the date of submission. Please note that Essays and text-based
+reports should be submitted as Microsoft Word documents (.doc or .docx),
+or as guided within the assignment. Please access the following guide to
+submitting assessments.
+
+Written work submitted to Turnitin will be subject to anti-plagiarism
+detection software. Turnitin checks student work for possible textual
+matches against internet available resources and its own proprietary
+database. Please access the University of Northampton’s Plagiarism
+Avoidance Course (UNPAC) to learn more.
+
+When you upload your work correctly to Turnitin you will receive a
+receipt which is your record and proof of submission. If your assessment
+is not submitted to Turnitin, rather than a receipt, you will see a
+green banner at the top of the screen that denotes successful
+submission.
+
+Further Assessment Guidance:
+
+Please access the following document for more general information about
+the assessment process, including anonymous marking, submissions, and
+where to find feedback and grades.
+
+UON Standard Assessment Guidance.
+
+N.B Work emailed directly to your tutor will not be marked.
