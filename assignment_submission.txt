@@ -1,0 +1,1943 @@
+An Analysis of HSTS as a Defence Mechanism Against SSL Stripping
+Attacks - Bibek Basnet | bibek.2023108@nami.edu.np,
+bibek.basnet22@my.northampton.ac.uk | Student, University of Northampton
+| Facilitated by NAMI College | Kathmandu, Jorpati, Nepal
+
+Abbreviations:
+
+-   Keep-Alive: Reuses a single TCP connection for multiple HTTP
+    requests to improve efficiency.
+
+-   Session Resumption: Speeds up TLS handshakes by reusing session keys
+    from earlier connections.
+
+-   PQC = Post-Quantum Cryptography
+
+-   HSTS = HTTP Strict Transport Security
+
+ABSTRACT
+
+The evolution of web security from HTTP to HTTPS represents a critical
+transformation in protecting digital communications. This research
+examines the fundamental security mechanisms underlying HTTPS, with
+particular emphasis on cryptographic protocols, certificate management,
+and HSTS enforcement. Through practical implementation and vulnerability
+analysis, this study demonstrates the effectiveness of HSTS in
+preventing SSL stripping attacks a prevalent man-in-the-middle attack
+vector that downgrades secure connections to exploit plaintext HTTP
+communication.
+
+The research employs a mixed-methods approach combining literature
+review with hands-on security testing using Apache web server,
+mitmproxy, and Kali Linux environments. Our experimental setup simulates
+real-world attack scenarios to evaluate the defensive capabilities of
+HSTS against protocol downgrade attacks. The findings reveal that while
+HTTPS provides essential encryption through TLS/SSL protocols, proper
+implementation of HSTS policies significantly enhances security posture
+by eliminating the initial HTTP connection vulnerability.
+
+Key contributions include: a comprehensive analysis of HTTPS
+cryptographic foundations, practical demonstration of SSL stripping
+attack vectors, empirical evaluation of HSTS effectiveness, and
+comparative analysis of web security implementations. The research
+concludes that HSTS preloading represents a critical defence mechanism
+for modern web applications, though implementation challenges remain in
+legacy systems and emerging quantum computing threats.
+
+II) INTRODUCTION
+
+The modern internet has become an indispensable infrastructure for
+global communication, commerce, and information exchange. However, this
+digital transformation has also introduced significant security
+challenges that threaten the confidentiality, integrity, and
+authenticity of online communications. The Hypertext Transfer Protocol
+(HTTP), originally designed for simple document retrieval in the early
+1990s, was never intended to handle the sensitive data transactions that
+characterize today's web applications.
+
+The fundamental security limitation of HTTP its plaintext nature creates
+vulnerabilities that malicious actors can exploit. This inherent
+insecurity led to the development of HTTPS (HTTP Secure), which layers
+the HTTP protocol over Transport Layer Security (TLS) or its
+predecessor, Secure Sockets Layer (SSL), providing encryption,
+authentication, and data integrity.
+
+Despite the widespread adoption of HTTPS, security vulnerabilities
+persist, particularly in the form of protocol downgrade attacks such as
+SSL stripping. These attacks exploit the common user behaviour of
+accessing websites without explicitly specifying the “https://"
+protocol, allowing attackers to maintain insecure HTTP connections while
+intercepting and potentially modifying sensitive data.
+
+ Research Problem and Motivation
+
+The primary research problem addressed in this study concerns the
+effectiveness of HSTS as a defence mechanism against SSL stripping
+attacks. While HTTPS provides robust encryption for data in transit, the
+initial connection establishment often relies on HTTP redirects,
+creating a window of vulnerability that attackers can exploit.
+Understanding how HSTS policies can eliminate this vulnerability is
+crucial for developing comprehensive web security strategies.
+
+The motivation for this research stems from the learning objectives and
+understanding various terms.
+
+Research Objectives
+
+This research aims to achieve the following objectives:
+
+1.  Analyse the cryptographic foundations of HTTPS:
+
+2.  Evaluate SSL stripping attack vectors:
+
+3.  Assess HSTS effectiveness:
+
+4.  Provide security recommendations:
+
+Research Methodology
+
+This study employs a mixed-methods approach combining theoretical
+analysis with practical experimentation. The research methodology
+includes:
+
+-   Literature Review: Comprehensive examination of existing research on
+    web, cryptographic standards, and attack vectors
+
+-   Experimental Design: Development of controlled testing environments
+    using Apache web server, mitmproxy, and Kali Linux
+
+-   Vulnerability Analysis: Practical demonstration of SSL stripping
+    attacks and HSTS countermeasures
+
+-   Comparative Analysis: Evaluation of different security
+    implementations and their effectiveness
+
+D) Limitations and significance
+
+The study focuses primarily on server-side security measures and their
+interaction with client-side browsers.
+
+Limitations include the constrained experimental environment, which may
+not fully represent the complexity of production web applications, and
+the focus on specific attack vectors rather than comprehensive threat
+modelling. Additionally, the rapid evolution of web security standards
+means that some findings may require updates as new protocols and
+standards emerge.
+
+The significance of this work lies in its practical approach to security
+research, combining theoretical understanding with hands-on
+implementation that can inform real-world security decisions. As web
+applications continue to handle increasingly sensitive data, the
+insights provided by this research become essential for maintaining user
+trust and regulatory compliance.
+
+III. LITERATURE REVIEW
+
+A) HTTP:
+
+To understand the evolution of web security, one must first understand
+the problem HTTP was created to solve. Before the World Wide Web, the
+internet consisted of fragmented systems and isolated protocols, which
+led to an inconsistent and inefficient user experience. There was no
+single, unifying protocol designed for distributed, hypermedia
+information systems.[5]
+
+HTTP was born out of this necessity, developed in the early 1990s by Tim
+Berners-Lee as part of the World Wide Web project at CERN [1]. The
+earliest HTTP version, HTTP/0.9, was a simple protocol supporting only
+the GET method and returning raw HTML without headers [2]. Building on
+this, HTTP/1.0 [2] added support for headers, multiple methods (GET,
+POST, HEAD), and status codes, enabling richer client-server
+interactions. Later, HTTP/1.1 [2] introduced persistent connections,
+host headers, and caching mechanisms, becoming the backbone of modern
+web communication. Figure 1 presents a structured overview of HTTP’s
+evolution, offering a comparative analysis of its major versions and
+their respective advancements.
+
+HTTP was designed as a stateless, plaintext, application-layer protocol
+to serve as a universal gateway, allowing a single client (browser) to
+access diverse resources. However, it was built for simplicity, not
+security. All communication under HTTP is transmitted in plaintext,
+meaning any intermediary can intercept or alter data in transit. HTTP
+provides no inherent confidentiality, no server authentication, and no
+data integrity verification [2].
+
+As the web began handling sensitive data, such as financial transactions
+and personal information, these vulnerabilities became critical. This
+led to the development of HTTPS, which layers HTTP over the Transport
+Layer Security (TLS) protocol.[3][4]
+
+Figure 1: The HTTP Secure Evolution Timeline [6]
+
+[]
+
+B) The Anatomy of an HTTPS Connection:
+
+While HTTP unified web access, its plaintext nature made it inherently
+insecure. To protect sensitive data in transit, encryption and
+authentication mechanisms had to be added. This led to the creation of
+HTTPS, which layers HTTP on top of encrypted transport protocols (TLS).
+Image 6 https comparison vs http.
+
+Figure 6: Http vs HTPPS Comparision:
+
+[]
+
+The journey to a secure session begins with a client resolving a
+website's domain name to an IP address via DNS, a process often
+accelerated by caching [ 7]. With the server located, the client then
+establishes a reliable connection using the foundational.
+
+TCP three-way handshake. This exchange of SYN and ACK packets fulfils
+the basic need for a stable communication line, upon which HTTP depends.
+[8] [image 2]
+
+Figure 2: Tcp 3-way handshake:
+
+[]
+
+TCP ensures that data is delivered accurately and in sequence. However,
+it does not offer any confidentiality, integrity, or authentication
+guarantees.[8]
+
+To address these security gaps, the TLS (formerly SSL) handshake follows
+the TCP connection. This handshake is a cryptographic negotiation
+initiated by the client, during which: Image 3
+
+Figure 3: Handshake Flow:
+
+[]
+
+-   The client and server agree on a cipher suite
+
+-   Exchange X.509 digital certificates to prove server (and optionally
+    client) identity.
+
+-   And derive a shared symmetric session key for encrypted
+    communication [9].
+
+This process ensures three critical security goals:
+
+-   Confidentiality
+
+-   Integrity
+
+-   Authentication
+
+Earlier attempts to secure data transmission, like using
+application-layer encryption lacked the consistency, transparency, and
+standardization offered by TLS. That is why the SSL/TLS model became the
+global standard for secure communications online. Image 4 flow control
+comparison
+
+Figure 4: HTTP VS HTTPS ON TLS FLOW:
+
+[]
+
+Once the TLS handshake is complete, a secure tunnel is established, and
+all subsequent HTTP messages are transmitted securely through this
+encrypted channel. This is what we know as HTTPS. Enhancements in HTTP/2
+and HTTP/3 have further optimized this setup by tightly integrating TLS,
+reducing latency and making encrypted communication the default standard
+on the modern web. Image 4 http compares http vs https vs https process
+flow
+
+ C) The Evolution of SSL/TLS: A History of Hardening the Web
+
+As HTTP evolved into the foundation of the modern web, it became clear
+that a plaintext protocol could not support the growing need for secure
+transactions. The solution came in the form of cryptographic protocols
+designed to secure communication channels beginning with SSL.
+
+SSL was first developed by Netscape Communications in the early 1990s,
+shortly after Tim Berners-Lee released HTTP and the World Wide Web into
+the public domain [1]. As online commerce and data exchange grew, it
+became evident that HTTP’s plaintext structure posed a critical security
+risk. SSL aimed to solve this by creating an encrypted tunnel around the
+HTTP session.
+
+The earliest version, SSL 1.0, was never released due to serious design
+flaws [2]. It lacked strong authentication, had vulnerabilities in key
+negotiation, and was susceptible to basic attacks. These shortcomings
+led to a rapid redesign.
+
+SSL 2.0, released in 1995, introduced public-key encryption and
+handshake-based key exchange. However, it suffered from:
+
+-   No protection for the handshake itself,
+
+-   Weak cipher negotiation (no downgrade protection),
+
+-   And vulnerabilities to man-in-the-middle (MITM) attacks [3].
+
+In response, SSL 3.0 emerged in 1996, redesigned by Paul Kocher and
+Netscape. It introduced:
+
+-   Authenticated handshake messages using MACs,
+
+-   Better cipher suite negotiation,
+
+-   Support for stronger key exchange algorithms like DHE.
+
+SSL 3.0 became the basis for the formal standardization of secure
+communication by the IETF, leading to the creation of the TLS protocol.
+
+The Transport Layer Security (TLS) protocol was introduced in 1999 with
+TLS 1.0, based on SSL 3.0 but with more robust cryptographic algorithms
+[4].
+
+Subsequent versions included:
+
+Table 1: TLS Versions Comparision:
+
+  -----------------------------------------------------------------------
+  Version       Year      Key Updates
+  ------------- --------- -----------------------------------------------
+  TLS 1.0       1999      Formalization of SSL 3.0 under IETF, added HMAC
+
+  TLS 1.1       2006      Protection against CBC attacks (padding oracle)
+
+  TLS 1.2       2008      SHA-2 supports, authenticated encryption
+
+  TLS 1.3       2018      Removed legacy ciphers, 1-RTT handshake,
+                          forward secrecy [5]
+  -----------------------------------------------------------------------
+
+Modern protocols like HTTP/2 and HTTP/3 are built with TLS as a
+requirement. Most browsers and operating systems now enforce:
+
+-   Minimum TLS 1.2
+
+-   Strong cipher suites only
+
+-   Certificate transparency and HSTS
+
+Figure 7 represent comparison on tls/ssl versions.
+
+Figure 7: Comparision of TLS/SSL Evolutions:
+
+[]
+
+Note: After this section you can preview Section 7,8 as it would be
+small recap/conclusion what I talked:
+
+IV) Application context:
+
+A) SSL Stripping 
+
+  is a MITM attack that downgrades a user’s secure HTTPS connection to
+  HTTP, enabling the attacker to intercept or alter traffic. First
+  introduced by Moxie Marlinspike in 2009, it exploits users’ habit of
+  typing URLs without the “https://” prefix [11].
+
+In this attack, the victim’s browser sends an initial HTTP request,
+which the attacker intercepts (using methods like ARP spoofing or rogue
+Wi-Fi) and responds with a fake HTTP site. Meanwhile, the attacker keeps
+a real HTTPS connection with the server but strips encryption between
+themselves and the victim, acting as a transparent proxy.[12]. Figure 5
+represent typical flow
+
+Figure 5: SSL Stripping Flow
+
+[]
+
+This lets them:
+
+-   Steal login credentials and cookies
+
+-   Inject malicious content
+
+-   Hijack or monitor sessions
+
+Though the server uses HTTPS, the victim’s browser never establishes a
+secure connection and remains unaware.[11]
+
+B) HSTS:
+
+To prevent downgrade attacks like SSL Stripping, modern websites use
+HSTS, a policy that forces browsers to connect only via HTTPS for
+specified domains. [10,13] Once a browser receives an HSTS header, it
+will:
+
+-   Automatically upgrade all future HTTP requests to HTTPS
+
+-   Reject untrusted certificates or insecure connections
+
+-   Optionally enforce the policy on all subdomains
+
+By removing the initial insecure HTTP request that SSL Stripping
+exploits, HSTS effectively blocks this attack.
+
+The policy is set via a response header, for example:
+
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+[10]
+
+Security is further enhanced by submitting domains to the HSTS preload
+list a browser-maintained registry that hardcodes sites to always use
+HTTPS from the very first visit, eliminating the "first-connection
+vulnerability" completely. [13]
+
+To be added to the list, a website must:
+
+-   Use a valid HTTPS certificate
+
+-   Redirect all HTTP traffic to HTTPS
+
+-   Serve the HSTS header with required directives:
+
+-   Support HTTPS on all subdomains
+
+C) Host and Attacker:
+
+1. The Virtual Lab Environment:
+
+2. The Operating System (Kali Linux):
+
+Section 1(Appendix): Setting up the local machine has detailed
+description on setting up our local environment to test.
+
+Figure 8: Virtual Box Image After Creation of new OS:
+
+[]
+
+Apache:
+
+"For this experiment, the Apache2 web server was selected to host the
+test application. As one of the most widely used web servers in the
+world, Apache is known for its powerful module system and extensive
+community support, making it an ideal and straightforward environment
+for testing security configurations."
+
+Review: Section 1 Appendix setting up tools:
+
+Apache2 was installed on the Kali Linux VM using the standard APT
+package manager (sudo apt-get install apache2).
+
+During the Apache2 installation, several key directories play important
+roles in hosting websites.
+
+-   The /etc/apache2/sites-available/ directory contains configuration
+    files for individual websites or virtual hosts, specifying how
+    Apache serves each site, including domain names and file locations.
+
+-   The /etc/apache2/sites-enabled/ directory holds symbolic links to
+    the active site configurations from sites-available, controlling
+    which sites Apache currently serves.
+
+-   Lastly, the /var/www/html/ directory is the default web root where
+    the website files
+
+Comparative analysis Apache vs Nginx:
+
+Table no 2: Analysiment of Apache vs Nginx
+
+  ------------------------------------------------------------------------
+  Aspect                Apache                    Nginx
+  --------------------- ------------------------- ------------------------
+  Architecture          Process-based, handles    Event-driven, handles
+                        requests with separate    many requests
+                        processes                 asynchronously
+
+  Performance           Good for low to medium    High performance, better
+                        traffic                   for heavy traffic
+
+  Configuration         Highly customizable with  Simpler configuration,
+                        many modules              fewer modules
+
+  Static Content        Slower serving static     Very fast at serving
+                        files                     static content
+
+  Dynamic Content       Handles internally        Uses external processors
+
+  Resource Use          Higher memory and CPU     Low resource usage,
+                        usage under load          efficient scaling
+
+  Popularity            Older, widely used with   Growing fast, popular
+                        large community           for modern apps
+  ------------------------------------------------------------------------
+
+Attack tools setup:
+
+For this research, mitmproxy was selected as the primary tool to
+demonstrate SSL stripping attacks and the effectiveness of HSTS as a
+defence mechanism. Unlike more complex, multi-purpose attack frameworks
+like Bettercap, mitmproxy is purpose-built for intercepting and
+analysing HTTP and HTTPS traffic in real time.
+
+Mitmproxy offers a transparent and reliable environment for studying how
+attackers can downgrade secure connections and capture sensitive data
+such as login credentials when HSTS is not enforced. It supports
+transparent proxying, has an intuitive terminal interface, and logs HTTP
+POST data clearly, making it ideal for educational and proof-of-concept
+scenarios.
+
+Table no 3: Limitation of Mimt
+
+  -----------------------------------------------------------------------
+  Limitation                          Explanation
+  ----------------------------------- -----------------------------------
+  Limited to HTTP/HTTPS               Unlike Bettercap, mitmproxy does
+                                      not support DNS spoofing or
+                                      wireless attacks
+
+  Requires ARP Spoofing Tool          For SSL stripping in real networks,
+                                      it must be paired with tools like
+                                      arpspoof
+
+  Manual Configuration                Transparent mode requires iptables
+                                      setup and routing adjustments
+  -----------------------------------------------------------------------
+
+Table no 4: Advantage of Mimt Proxy:
+
+  -----------------------------------------------------------------------
+  Advantage           Explanation
+  ------------------- ---------------------------------------------------
+  Purpose-Built for   Focused on intercepting and analysing web traffic
+  HTTP                without unnecessary overhead
+
+  Easy to Use         Simple CLI interface; ideal for educational labs
+                      and research
+
+  Transparent Proxy   Enables SSL stripping without needing victim
+  Mode                cooperation
+
+  Highly Reliable     Works consistently across Linux distributions,
+                      including Kali Linux
+
+  Active Development  Regularly maintained with clear documentation and
+                      community support
+  -----------------------------------------------------------------------
+
+Note: To install it see appendix Section 1 tools Mimt:
+
+Other tools may be as: Bettercap, Ettercap, SSLStrip, Cain & Abel:
+
+Wireshark:
+
+popular open-source network protocol analyzer used to capture and
+inspect data packets traveling over a network. Wireshark provides a
+detailed view of packet contents. On Kali Linux, Wireshark is typically
+included by default or can be easily installed via the package manager,
+making it a convenient tool for network analysis.
+
+Figure 9: Wireshark Icon:
+
+[]
+
+OpenSSL
+
+is a widely used open-source software library that provides a robust,
+full-featured implementation of the SSL and TLS protocols. These
+protocols are essential for securing data transmitted over networks
+
+Core Developed in the C programming language, OpenSSL enables developers
+and system administrators to:
+
+-   Encrypt and decrypt data,
+
+-   Generate cryptographic keys,
+
+-   Create and manage digital certificates (X.509),
+
+-   Support secure communication protocols like HTTPS, FTPS, and SMTPS.
+
+Key Features:
+
+-   Encryption Algorithms:
+
+-   Certificate Management:
+
+-   Command-Line Tools:
+
+V) Security software tool: Implementation:
+
+Recap: What’s are we going to do.
+
+Table 5: Recap:
+
+  -----------------------------------------------------------------------
+  VM                 Role                       Setup
+  ------------------ -------------------------- -------------------------
+  Kali Linux         Server + Attacker          Apache2 + Mimt Proxy+
+                                                Fake site + Wireshark at
+                                                the end
+
+  Kali Linux         Victim                     Just browser visits fake
+                                                site, enters login
+
+  Network            Shared/Bridged             Both hosts must be on
+                                                same subnet, with ping
+                                                working
+  -----------------------------------------------------------------------
+
+Setting up Site:
+
+First enable Apache service or check its running
+
+-   Go to Apache Web Directory
+
+{cd /var/www/html}
+
+-   Remove the default index file: or edit the file
+
+{sudo rm index.html}
+
+-   Create Your Fake Banking Pages:
+
+-   sudo nano index.html
+
+Figure 10: Setting Sites:
+
+  []
+
+Copy and paste code from source code in appendix section.
+
+Reload the site you can see changes.
+
+Figure 11: Preview Sites
+
+[]
+
+Installed the needed dependencies:
+
+sudo apt install openssl -y && sudo a2enmod ssl
+
+Figure 12: Installed Needed Dependences:
+
+[]
+
+Self-signed certificate setup full guide: 
+
+A directory to store your SSL certificate and key.
+
+sudo mkdir /etc/apache2/ssl
+
+-   Generate the self-signed SSL certificate and private key.
+
+sudo openssl req -x509 -nodes -days 365 \
+
+-newkey rsa:2048 \
+
+-keyout /etc/apache2/ssl/apache-selfsigned.key \
+
+-out /etc/apache2/ssl/apache-selfsigned.crt
+
+  Figure 13: Generating Self Signed Certificate with Open SSL Commands:
+
+-   []
+
+-   You’ll be prompted to enter info. Enter the details for common name
+    specially.
+
+If a certificate doesn't define a proper Common Name or Subject
+Alternative Name matching the domain you're visiting, most browsers and
+clients will reject the connection.
+
+When a browser connects to https://bankoftrust.com it performs a check:
+
+"Does this certificate match the domain I tried to reach?"
+
+Create Apache SSL Virtual Host File
+
+-   sudo nano /etc/apache2/sites-available/bankoftrust-ssl.conf
+
+Add this line:
+
+-   SSLCertificateFile /etc/apache2/ssl/apache-selfsigned.crt
+
+-   SSLCertificateKeyFile /etc/apache2/ssl/apache-selfsigned.key
+
+-   More lines which come default on Apache files we have seen on
+    discussing Apache 2 what is it. These files will be in appendix
+    source code:
+
+Enable the site
+
+sudo a2ensite bankoftrust-ssl.conf
+
+Restart Apache to apply changes and preview
+
+-   systemctl reload apache2
+
+Image 14: Enabling the SSL Site Configuration and restart apache2
+
+[]
+
+Perform Attack:
+
+"Since HSTS is not enabled, we can proceed with a basic SSL stripping
+attack. But before launching the at
+
+tack, we need to follow a few preparatory steps."
+
+On Client Side Modify Setting .To make on same subnet:
+
+-   Host-only Adapter.
+
+-   Bridged Adapter
+
+Image 15: Previewing Network Setting VirtualBox Setting
+
+-   []
+
+Enable IP Forwarding
+
+IP forwarding allows Kali to pass network traffic between the victim and
+the internet. This is needed to perform a MITM attack.
+
+Command:
+
+echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward
+
+Redirect HTTP Traffic to mitmproxy:
+
+sudo iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j
+REDIRECT --to-port 8080
+
+Image 16: Redirect + Enable Ip Forwarding:
+
+[]
+
+Find Your Network Interface
+
+You need to know which network interface (like eth0, wlan0, or enp0s3)
+is being used to connect to the network.
+
+Command:
+
+ip a / ip addr
+
+Check which interface is connected to the same network/subnet as the
+victim.
+
+Find the Victim’s IP Address
+
+Scan the local network to see all connected devices and find the IP
+address of the victim.
+
+Command:
+
+sudo arp-scan --localnet
+
+Note down the IP address of the target device.
+
+Image 17: Scanning Local Network:
+
+  []
+
+Update the dns reloution from client side. Map domain to attacker in
+/etc/hosts. Run the notepad or any text editor as admin and save new
+list
+
+Image 18: Editing the Local Hosts Files to Resolve DNS:
+
+[]
+
+Start ARP Spoofing (Terminal 1):
+
+sudo arpspoof -i eth0 -t 192.168.1.78 192.168.1.254
+
+Start mitmproxy (Terminal 2):
+
+sudo mitmproxy --mode transparent --showhost
+
+Image 19: Start phase of attack:
+
+[][][]
+
+Victim Action 
+
+1.  Open a private/incognito browser window
+
+2.  Visit: the site bankoftrust.com
+
+3.  Use the form and submit.
+
+4.  On terminal of mimtproxy we can see it has captured the credentials.
+
+After Defences:
+
+Stop the services that was running mimt.
+
+Edit your Apache SSL site config (bankoftrust-ssl.conf):
+
+-   sudo nano /etc/apache2/sites-available/bankoftrust-ssl.conf
+
+Add Hsts header:
+
+-   Header always set Strict-Transport-Security "max-age=63072000"
+
+Enable Apache header and module and restart server:
+
+-   sudo a2enmod headers
+
+-   sudo systemctl restart apache2
+
+2.  Accept the certificate warning (since it’s self-signed)
+
+Image 20: Click to processed too self-signed
+
+  []
+
+3.  This causes the browser to save the HSTS policy
+
+Important: You MUST visit the HTTPS site directly once before restarting
+mitmproxy. Or we have seen HSTS Pre-load lists.
+
+Re-run the attack will be failed:
+
+Try navigating from the user explicitly typing http and URL it will
+redirect to https.
+
+Image 21: HSTS POWER:
+
+[]
+
+[]
+
+After the HSTS header is added and the victim's browser accepts it once
+via a secure HTTPS visit, all future HTTP requests to bankoftrust.com
+are automatically upgraded to HTTPS. This prevents mitmproxy from
+intercepting the connection, thereby rendering the SSL stripping attack
+ineffective. The experiment demonstrates the critical importance of
+enabling HSTS on sensitive web services.
+
+As discussed on literature section browser upgrade themselves to use
+only tls 1.2,3 so let’s check that:
+
+Image 22: TLS1.0 Doesn’t support by major Browser
+
+[][][]
+
+[]
+
+Tabel 6: HSTS VS HTTPS-Only Mode:
+
+  -----------------------------------------------------------------------
+  Feature                    HSTS Preload (Site-controlled)
+  -------------------------- --------------------------------------------
+  First-visit protection     Yes, built into browser list
+
+  Who enforces it            Browser (via preload list baked into
+                             browser)
+
+  Who configures it          Website owner submits domain + config
+
+  Affects all users          Yes, for all users with modern browsers
+
+  Visible to user?           Transparent unless site fails
+
+  Used by default?           Yes, if in preload list
+  -----------------------------------------------------------------------
+
+  -----------------------------------------------------------------------
+  HTTPS-Only Mode (User-controlled)
+  -----------------------------------------------------------------------
+  Yes, browser forces HTTPS
+
+  Browser (based on user/browser setting)
+
+  User or browser vendor enables HTTPS-only mode
+
+  No, only for users who have it enabled
+
+  User may see a warning if a site doesn't support HTTPS
+
+  Varies by browser: Firefox = optional; Chrome = partially auto-enabled
+  -----------------------------------------------------------------------
+
+Redirecting users from HTTP to HTTPS is a common way to secure web
+traffic by encrypting data exchanged between the browser and the server.
+However, this method alone leaves a critical gap known as the "initial
+plaintext request" vulnerability. When a user first visits a site over
+HTTP, the request is unencrypted and can be intercepted before the
+redirect occurs.
+
+This opens the door to SSL Stripping, where an attacker intercepts the
+HTTP request and silently acts as a proxy maintaining a secure
+connection with the server, but an insecure one with the user. As a
+result, compromised.
+
+To close this gap, sites must implement HSTS. HSTS tells browsers to
+always use HTTPS for future visits, eliminating the chance for an
+attacker to exploit the initial unencrypted request. While HTTPS
+redirects are helpful, HSTS is essential for truly secure web
+communication.
+
+VI Testing:
+
+Testing: -Case 1:CN NAME ISSUE :
+
+It checks two things in the certificate:
+
+1.  SAN This is the modern standard.
+
+2.  If SAN is missing, it falls back to Common CN.
+
+We did not specify the CN name while we create / setup our simulation as
+you dns can't resolve name as https to validate a certificate
+
+[]
+
+[][][]B) Test-Case 2:Ping,Firewall,Mimt
+
+You likely can't ping devices on your local subnet because a firewall is
+blocking the ping protocol, but you can demonstrate HSTS because that
+same firewall is allowing the web traffic needed for it.
+
+The two actions use completely different protocols that are managed by
+separate firewall rules.
+
+Ping does not use the same protocol as web Browse. It operates using the
+ICMP.
+
+It's a very common security practice for firewalls on computers to be
+configured to block incoming ICMP requests. This is done to prevent the
+device from being easily discovered on a network by scanning tools. So,
+even though the device is on and connected to the same network, it's
+intentionally ignoring your ping requests.
+
+Demonstrating HSTS requires a successful HTTPS connection between a
+browser and a web server.
+
+-   HTTPS runs over the tcp over.
+
+The firewall that is blocking ICMP.
+
+[][][]C) Test-Case 3: Apache Encryption:
+
+To capture and analyse the network traffic of a complete TLS 1.3 session
+between a client and a web server. The goal is to verify that while
+handshake metadata is visible, the application-layer data remains
+encrypted and unreadable to an unauthorized party on the network.
+
+[][][][]
+
+VII) Further Work:
+
+1.  Explore More Advanced MITM Attack Scenarios:
+
+-   Bettercap, to perform different attacks such as DNS spoofing to see
+    if HSTS still provides adequate protection.
+
+2. Implement in a Production-Like Environment:
+
+-   Using a trusted certificate from a real Certificate Authority (like
+    Let's Encrypt) and test the automated renewal process and security
+    in a more realistic environment.
+
+3) Analyze Client-Side Security Defences:
+
+-   Content Security Policy (CSP) and Subresource Integrity (SRI), to
+    create a more comprehensive defence.
+
+4) Advanced HSTS Implementation (Preloading and Subdomains):
+
+-   Analyze the process of submitting the domain to the HSTS preload
+    list and demonstrate how this completely mitigates the
+    "first-connection vulnerability" that your current SSL stripping
+    attack exploits.
+
+5) Building a Private Certificate Authority (CA) Hierarchy.
+
+Advanced Work:
+
+Future research could expand upon this study by appendix section.
+Additionally, valuable insights could be gained from a performance
+analysis of emerging protocols like HTTP/3 over QUIC, a practical
+replication of historical exploits like Heartbleed, and a detailed
+security comparison of TLS session resumption techniques. Finally, the
+most critical future work would involve researching and implementing
+hybrid PQC solutions to proactively defend against the threat of
+"Harvest Now, Decrypt Later" attacks from future quantum computers.
+
+VIII) Conclusion:
+
+This study exposed SSL‑stripping’s real‑world risk and empirically
+validated HTTP Strict Transport Security (HSTS) as the definitive fix.
+After outlining HTTP’s plaintext vulnerability and HTTPS/TLS’s encrypted
+safeguards, we built a lab using Apache, Mitmproxy, and arpspoof to
+perform a live Man‑in‑the‑Middle downgrade attack.
+
+By intercepting a browser’s initial HTTP request and capturing
+credentials in cleartext, we showed the flaw lies in that unprotected
+redirect not in TLS cryptography itself. Enforcing HSTS closes this
+“HTTP window,” forcing browsers to upgrade every connection to HTTPS
+before sending data. This protection is especially vital on public
+networks (e.g., cafes or airports), where ARP spoofing makes SSL
+stripping trivial.
+
+Although HSTS is the cornerstone defence, we found layered measures AP
+isolation, host firewalls, and antivirus to thwart network‑level
+threats. Operating under a self‑signed certificate in a controlled
+environment, our work paves the way for future research into
+post‑quantum TLS, advanced attack vectors, and deployment with trusted
+CAs. For any organization serious about web security, a robust HSTS
+policy is essential.
+
+IX) References:
+
+[1] World Wide Web Consortium (W3C), A Little History of the World Wide
+Web. [Online]. Available: https://www.w3.org/History.html
+
+[2] R. Fielding, J. Gettys, J. Mogul, H. Frystyk, L. Masinter, P. Leach,
+and T. Berners-Lee, Hypertext Transfer Protocol -- HTTP/1.1, IETF RFC
+2616, June 1999. Available at:
+https://datatracker.ietf.org/doc/html/rfc2616
+
+[3] E. Rescorla, HTTP Over TLS, IETF RFC 2818, May 2000. Available at:
+https://datatracker.ietf.org/doc/html/rfc2818
+
+[4] OWASP Foundation, Transport Layer Security Cheat Sheet. [Online].
+Available:
+https://cheatsheetseries.owasp.org/cheatsheets/Transport_Layer_Security_Cheat_Sheet.html
+
+[5] T. Berners-Lee, Information Management: A Proposal, CERN, March
+1989. Available at: https://www.w3.org/History/1989/proposal.html
+
+[6] M. Bishop, Ed., HTTP/3, IETF RFC 9114, June 2022. Available at:
+https://datatracker.ietf.org/doc/html/rfc9114#name-prior-versions-of-http
+
+[7] P. Mockapetris, DOMAIN NAMES - CONCEPTS AND FACILITIES, IETF RFC
+1034, November 1987. [Online]. Available:
+https://datatracker.ietf.org/doc/html/rfc1034
+
+[8] J. Postel, Ed., TRANSMISSION CONTROL PROTOCOL, IETF RFC 793,
+September 1981. [Online]. Available:
+https://datatracker.ietf.org/doc/html/rfc793#section-3.1
+
+[9] E. Rescorla, The Transport Layer Security (TLS) Protocol Version
+1.3, IETF RFC 8446, August 2018. [Online]. Available:
+https://datatracker.ietf.org/doc/html/rfc8446#section-2.1
+
+[10] J. Hodges, C. Jackson, and A. Barth, HTTP Strict Transport Security
+(HSTS), IETF RFC 6797, November 2012. [Online]. Available:
+https://datatracker.ietf.org/doc/html/rfc6797#section-1.1
+
+[11] M. Marlinspike, "New Tricks for Defeating SSL In Practice,"
+presented at the BlackHat DC Conference, 2009. [Online]. Available:
+https://www.blackhat.com/presentations/bh-dc-09/Marlinspike/BlackHat-DC-09-Marlinspike-Defeating-SSL.pdf
+
+[12] CyberArk, What is an SSL Stripping Attack?. [Online]. Available:
+https://www.cyberark.com/what-is/ssl-stripping-attacks/
+
+[13] The HSTS Preload List Project, HSTS Preload List Submission.
+[Online]. Available: https://hstspreload.org/
+
+[14] Oracle Corporation, Oracle VM VirtualBox - Downloads. [Online].
+Available: https://www.virtualbox.org/wiki/Downloads
+
+[15] Kali Linux, Get Kali Linux. [Online]. Available:
+https://www.kali.org/get-kali/#kali-installer-images
+
+[16] Vation Ventures, Cryptography in Cybersecurity Explained. [Online].
+Available:
+https://www.vationventures.com/glossary/cryptography-cybersecurity-explained
+
+[17] Paubox, (2023, October 20) What is Cryptography. [Online].
+Available: https://www.paubox.com/blog/what-is-cryptography
+
+[18] Wikipedia, Cryptography. [Online]. Available:
+https://en.wikipedia.org/wiki/Cryptography
+
+X) Presentation:
+
+A) Slide 1:
+
+[]
+
+B) Slide 2:
+
+[]
+
+C) Slide 3:
+
+[]
+
+D) Slide 4:
+
+[]
+
+E) Slide 5:
+
+[]
+
+F) Slide 6:
+
+[]
+
+G) Slide 7:
+
+[]
+
+H) Slide 8:
+
+[]
+
+I) Slide 9:
+
+[]
+
+J) Slide 10:
+
+[]
+
+K) Slide 11:
+
+[]
+
+L) Slide 12:
+
+[]
+
+M) Slide 13:
+
+[]
+
+N) Slide 14:
+
+[]
+
+O) Slide 15:
+
+[]
+
+P) Slide 16:
+
+[]
+
+Q) Slide 17:
+
+[]
+
+R) Slide 18:
+
+[]
+
+S) Slide 19:
+
+[]
+
+Appendix
+
+Section 1: Setting up the local machine:
+
+Setting up different operating systems using VirtualBox and
+corresponding disk image (ISO) files is often a repetitive and
+time-intensive process. Depending on internet speed and hardware
+performance, the setup can take an hour or more to complete. While this
+traditional method is reliable, it introduces significant delays,
+particularly in research or demonstration scenarios where rapid
+environment deployment is essential. So, our full demonstration on
+installation is sort coming:
+
+Virtual Box Setup:
+
+-   Download the installation from whatever browser you are using and
+    the OS Version You are using as initial bootup of the PC.[14]
+
+-   Navigate to the References link [14]. Download the installation and
+    run the exec file and you can see installation dialogue box click
+    next and yes till to the end.
+
+-   And run it below image 1 shows what it looks like.
+
+Image 1: Installation of Virtual Box Images: [][][][]Done:
+
+Download IOS Image File and Setting Up in VBOX:
+
+Among various Linux distributions, Kali Linux was chosen for its
+built-in security tools and its Debian base, which is more user-friendly
+and familiar due to academic exposure.
+
+-   Download the file from [15]. Below Image 2 Shows which one.
+
+-   After installation open VBox for initial work.
+
+-   Click New on VBox + Give Name and Select IOS Image File click next
+    +Give Hardware Requirements + Give disk space + Below Image 3 Shows
+    my doings.
+
+-   After clicking finish open the setting of that then setup some
+    configurations. Below image 4 shows it. After done click start
+
+-   Proceed by clicking Next or Continue through the standard tool or
+    software installation steps, as most of the options can be left at
+    their defaults. When prompted with "Write changes to disk?", select
+    Yes to proceed. After this Select box when it comes select
+    everything. + Default manager gdm3 or whatever you liked
+
+-   At this stage, a detailed explanation of each section and its impact
+    on the system has been intentionally omitted to avoid unnecessary
+    length. Further technical breakdown will be explored in later
+    sections if required.
+
+Image 2: Installation of Image File:
+
+[]
+
+Image 3: Setting IOS Image + Some inital setting up:
+
+[]
+
+[][][]
+
+Image 4: Setting Fixed or add something:
+
+[][]
+
+Setting up tools:
+Apache:
+
+Step 2: Install Apache2:
+
+Use the APT package manager to install Apache:
+
+{sudo apt install apache2 -y}
+
+[]
+
+This installs the Apache HTTP server and all required dependencies.
+
+-   Step 3: Start the Apache service:
+
+After installation, start Apache if it's not running:
+
+{sudo systemctl start apache2}
+
+[]
+
+-   Step 4: Check Apache status (optional):
+
+  You can always check its status with:
+
+  {sudo systemctl status apache2}
+
+-   Step 5: Verify Apache is working:
+
+Open your browser in Kali and go to:
+
+http://localhost
+
+Or
+
+http://127.0.0.1
+
+  You should see the default "Apache2 Debian Default Page" this means
+  it's running properly.
+
+  []
+
+  Attacking tools Mitm:
+
+  To installed it you have to use again APT package manager to install
+  it.
+
+  sudo apt update && sudo apt install dsniff mitmproxy -y
+
+  To check it version:
+
+  mitmproxy --version
+
+  []
+
+Section 2: Understanding Fundamentals/Key Terms:
+
+Cryptography:
+
+Cryptography derived from the Greek words kryptós (“hidden”) and
+graphein (“to write”) is the scientific discipline focused on securing
+communication via mathematical techniques. It translates plaintext into
+ciphertext, ensuring that only authorized parties with the correct keys
+can access the original message. Cryptography underpins critical aspects
+of information security, including confidentiality, integrity,
+authentication, and non-repudiation. [17,16]
+
+Evolution of Cryptography terms:
+
+As Cryptography is derived terms which has its own history of use cases
+with each one showing something unique blend of life towards that time
+frame. Below Image 5 Represent small timeline frame/basic frame design.
+[18]
+
+Image 5: Timeframe Representation of Cryptography term in humanity:
+
+[]
+
+Key Terms:
+
+Understanding the key terms in cryptography is essential for further
+sections: Below Image 6 Represent some of the keywords we are going to
+see further in cases. [References From All the college slides.]
+
+Image 6: Key Terms Simple Representation
+
+[]
+
+Note: Review Section [First Words] Free Speech in appendix:
+
+Block ciphers work by dividing the data into fixed-size blocks (for
+example, 128 bits) and encrypting each block separately using the same
+key. If the final block is not the right size, padding is added. A
+common example is AES (Advanced Encryption Standard).
+
+Stream ciphers, on the other hand, encrypt data one bit or byte at a
+time. They use something called a keystream, which is a series of
+random-looking bits, and combine it with the original data using the XOR
+operation. This method is fast and useful for real-time communication,
+like video or audio calls.
+
+Section 3: Understanding Encryptions:
+
+Encryption:
+
+Is a method used to protect information by converting it into a secret
+code so that only authorized people can read it.
+
+Types of Encryptions:
+There are mainly two types of encryptions used widely:
+
+-   Symmetric Encryption
+
+-   Asymmetric Encryption
+
+1.Symmetric Encryption:
+
+A method where the same secret key is used for both encrypting and
+decrypting. This use makes it efficient for large amounts of data but
+also means that securely sharing and managing the key is critical. Some
+of the popular encryption Algorithm are AES, DES,3DES, Blowfish and
+more, each varying in terms of security strength and performance. Image
+7 Represent a typical chart of Symmetric Encryption.
+
+Image 7: Symmetric Encryption:
+
+[]
+
+2.Asymmetric Encryption:
+
+Asymmetric encryption, or public-key cryptography, uses a pair of
+mathematically linked keys: a public key for encrypting data and a
+private key for decrypting it. This dual-key system solves the key
+distribution challenge inherent in symmetric encryption, allowing the
+public key to be openly shared while keeping the private key secret.
+Widely used asymmetric algorithms include RSA, ECC, and Diffie- Hellman
+key exchange. Image 8 Represent a simple representation of Asymmetric
+Encryption.
+
+Image 8: Asymmetric Encryption:
+
+[]
+
+Comparison Summary:
+
+  -----------------------------------------------------------------------
+  Feature             Symmetric Encryption         Asymmetric Encryption
+  ------------------- ---------------------------- ----------------------
+  Number of Keys      One key (shared secret)      Two keys (public &
+                                                   private)
+
+  Speed               Faster                       Slower
+
+  Key Distribution    Challenging                  Easier (public key is
+                                                   shared)
+
+  Use Case            Large data encryption        Secure key exchange,
+                                                   digital signatures
+  -----------------------------------------------------------------------
+
+Understanding some more terms:
+
+Key Generation:
+
+Key generation is the process of creating cryptographic keys used to
+secure data through encryption and decryption. These keys ensure that
+only authorized users can access the protected information.
+
+The method used to generate keys is called a key generation algorithm.
+Two main types of generation are: Symmetric and Asymmetric key
+generation.
+
+Key Size:
+
+Key size, measured in bits, defines the length of a cryptographic key
+and plays a crucial role in the overall strength of encryption.
+Generally, larger keys offer stronger security by increasing the number
+of possible combinations, making brute-force attacks more difficult.
+However, greater key lengths require more computational resources.
+
+Note: Bigger does not always mean better. The security also depends on
+the algorithm itself. For instance, AES-128 is considered more secure
+than RSA-1024 due to differences in their cryptographic design.
+
+Section 4: Comparing and understanding types of algorithms on Encryptions:
+
+In this section we going to look through types of algorithms on
+Encryptions: Below Image 9 Represent a simple design show some of them
+with more info.
+
+Image 9: Encryption Algorithms Info's:
+
+[]Encryption algorithms commonly used in HTTPS (TLS/SSL):
+
+-   AES
+
+-   ChaCha20
+
+-   RSA
+
+-   ECC
+
+-   DH
+
+-   SHA-2 Family
+
+Table 1 presents key terminology and their usage, which will be
+clarified further as we explore the various sub-domains of Digital
+Signatures.
+
+Table 1: Used Cases of Encryption Algorithms
+
+  -----------------------------------------------------------------------
+  Purpose            Algorithm Examples            Notes
+  ------------------ ----------------------------- ----------------------
+  Symmetric          AES (GCM, CBC), ChaCha20      Encrypts data stream
+  Encryption                                       
+
+  Asymmetric         RSA, ECDSA, ECDH, DH          Key exchange &
+  Encryption                                       authentication
+
+  Hash Functions     SHA-2 (SHA-256, SHA-384)      Integrity & signatures
+  -----------------------------------------------------------------------
+
+Each encryption algorithm employs distinct mathematical operations to
+generate its keys, with each possessing unique mechanisms. For example,
+AES is fundamentally a block cipher, but when used in certain modes
+(e.g., CTR or CFB), it effectively functions as a stream cipher.
+Likewise, each algorithm specifies its own key‐length requirements,
+which we examined in key-length sections. Additionally, every algorithm
+has a distinct evolutionary history: when Triple DES (3DES) was
+introduced, it was considered a comprehensive solution to DES’s
+vulnerabilities; however, as computational power increased, NIST
+officially deprecated 3DES in 2018, and its use will be prohibited after
+2023.
+
+Image 10 Represent a simple chart on these Encryption Algorithms used
+not used.
+
+Image 10: Comparative Analysis of the chart:
+
+[]
+
+Section:5: Understanding Integrity terms:
+
+Hash:
+
+A cryptographic hash function maps data of any length to a fixed-size
+output called a hash or digest. This process is one-way, making it
+infeasible to reverse, and is designed to be collision-resistant,
+meaning it's highly unlikely two inputs produce the same output.
+
+In HTTPS, hash functions like SHA-256 ensure data integrity even slight
+changes to a message yield a completely different hash. They also secure
+digital certificates, verifying that the certificate content hasn't been
+tampered with.
+
+HMAC (Hash-Based Message Authentication Code)
+
+HMAC combines a cryptographic hash function with a secret key to ensure
+both integrity and authenticity. Only parties with the shared key can
+create or verify the hash.
+
+In TLS, which powers HTTPS, HMAC protects data in transit by detecting
+tampering and confirming the source, securing communication from
+eavesdropping or manipulation.
+
+Digital Signatures
+
+Digital signatures use hash functions and asymmetric encryption to
+provide authenticity, integrity, and non-repudiation. In HTTPS, they're
+embedded in X.509 certificates.
+
+A certificate’s contents are hashed and encrypted with the issuer’s
+private key. Clients verify it using the corresponding public key
+ensuring the certificate is both unaltered and trustworthy.
+
+Algorithms like RSA-PSS and Ed25519 are commonly used, forming the basis
+for secure, authenticated connections and preventing MitM attack.
+
+Section 6: Understanding Certificates Terms:
+
+X.509 Certificates:
+
+Before obtaining a certificate either self-signed or from a CA the
+administrator must generate a key pair using a key generation algorithm.
+
+The X.509 standard, developed by the ITUT, forms the cornerstone of
+digital certification within PKI. An X.509 certificate securely binds a
+public key to a verified identity such as that of a user, server, or
+organization enabling reliable authentication and encrypted
+communication.
+
+Crucially, X.509 defines more than standalone certificates issued by
+CAs; it establishes a layered trust model composed of:
+
+1.  Root Certificates: Issued by trusted root CAs and pre-installed in
+    operating systems and web browsers.
+
+2.  Intermediate Certificates: Issued by subordinate CAs to extend trust
+    from the root authority to end entities.
+
+3.  End-Entity Certificates: Issued to servers or users, these are
+    presented during secure exchanges to verify identity.
+
+Together, these certificates form a trust chain, in which credibility
+flows from the root CA through intermediaries to the end entity. We can
+sign other entities too with self-signed.
+
+Note: Beyond its hierarchical trust model, the X.509 standard
+incorporates critical mechanisms that enhance certificate reliability
+and enforce security policies within a PKI.
+
+Certificate revocation:
+
+Used for invalidating certificates before their expiration when they are
+compromised due to private key leaks, CA breaches, or personnel changes.
+Without revocation, attackers could misuse certificates to impersonate
+trusted entities.
+
+To address this, systems verify revocation status using CRLs or the
+OCSP, ensuring only valid certificates are trusted.
+
+Certificate extensions:
+
+Which embed metadata specifying permitted uses and constraints such as
+path length or policy restrictions. These extensions serve as built-in
+safeguards, restricting certificates to their intended functions.
+
+Types of Certificates:
+
+Currently, there exist various types of digital certificates, each
+designed for specific purposes and validation scopes. Fundamentally, a
+certificate serves to verify the authenticity and integrity of an
+entity.
+
+Due to the extensive nature of these types, a detailed textual
+description of each will be omitted to maintain brevity. Instead, a
+visual summary is provided Image 0,1 represent types with some
+description and image 2 represent on comparison sort, simple.
+
+Image 0:
+
+[]Image 2:
+
+-   []
+
+Document Signing Certificates
+
+-   Used to digitally sign documents like PDFs to verify authorship and
+    integrity.
+
+IoT Certificates
+
+-   Special certificates designed for Internet of Things devices to
+    secure communication and device identity.
+
+EV Code Signing Certificates
+
+-   Like EV SSL but for code signing, providing higher assurance about
+    software publishers.
+
+Unified Communications Certificates (UCC)
+
+-   Used mainly with Microsoft Exchange and Office Communications
+    servers.
+
+-   Can secure multiple domain names and host names in a single
+    certificate, like SAN.
+
+Image 3: Comparison on Types of certificates:
+
+[]
+
+Certificate Authorities (CAs):
+
+Is a trusted entity responsible for issuing digital certificates that
+authenticate the identity of something. These certificates
+cryptographically bind a public key to a verified subject.
+
+The standard issuance process involves several steps:
+
+-   The applicant generates a CSR and submits it to the CA.
+
+-   The CA performs identity validation through standardized procedures.
+
+-   Upon successful verification, the CA issues a digitally signed TLS
+    certificate.
+
+-   When clients connect to the website, their browsers verify the CA’s
+    digital signature on the certificate.
+
+-   If the signature is valid and trusted, a secure HTTPS session is
+    established.
+
+The Root CA’s certificate is self-signed and pre-installed within
+operating systems and browsers. This Root CA servers as the ultimate
+trust anchor, enabling trust chains.
+
+Chain of trust:
+
+The Chain of Trust is a fundamental PKI principle that secures
+communication over untrusted networks like the Internet. It supports
+SSL/TLS protocols by ensuring every digital certificate can be traced
+back to a trusted CA validating the holder’s identity and enabling
+encrypted, authenticated connections.
+
+Hierarchy of Certificate Authorities:
+
+-   Root CA:
+
+-   Intermediate CA:
+
+-   Server Certificate case Https:
+
+Image that represents a simple design with definition and some other
+
+[]
+
+1.2 Chain Validation Process
+
+When a client connects securely. The server sends its certificate plus
+intermediates.
+The client rebuilds the chain up to a trusted Root CA from its trust
+store. Each certificate’s signature is verified with the issuer’s public
+key. If valid and unrevoked, the client trusts the server’s identity.
+Prevents Mimt and ensure certificate authenticity.
+
+CSR:
+
+A CSR is initial step in obtaining a digital certificate. It acts as a
+formal request sent by a server/application to a CA to validate and bind
+a public key to a verified identity, enabling trusted communication.
+
+Structure of a CSR:
+
+[]
+
+CA Validation and Certificate Issuance
+
+-   The CA validates the CSR depending on the certificate type
+    requested.
+
+-   After validation, the CA issues an X.509 certificate containing the
+    requester’s public key and identity, digitally signed with the CA’s
+    private key.
+
+-   The certificate is then installed on the server, enabling clients to
+    authenticate the server via the Chain of Trust.
+
+Section 7: Understanding Security:
+
+Cipher Suits:
+
+A predefined set of cryptographic algorithms used to negotiate secure
+communication parameters between a client and server during the SSL/TLS
+handshake.
+
+Cipher Suits Typically format is illustrated in image:
+
+Image []
+
+On Windows systems, the supported TLS cipher suites can be viewed using
+PowerShell by running:
+
+Get-TlsCipherSuite
+
+This command displays the system’s configured cipher suites, including
+their cryptographic algorithms and priority.
+
+In Mozilla Firefox, the certificate trust store can be accessed via:
+
+-   Settings > Privacy & Security > View Certificates,
+
+which lists trusted root and intermediate certificate authorities (CAs).
+
+Windows also includes the Certificate Manager (certmgr.msc), launched
+through the Run dialog (Win + R). It provides a detailed interface to
+manage system-wide certificates, including those trusted by the
+operating system and user-installed entries.
+
+Table no2:
+
+  -----------------------------------------------------------------------
+  Feature         certmgr.msc                     Get-TlsCipherSuite
+  --------------- ------------------------------- -----------------------
+  Function        View/manage certificates        View supported TLS
+                                                  cipher suites
+
+  Accessed via    Run dialog / GUI                PowerShell (CLI)
+
+  Focus           Certificate trust chain         Cryptographic
+                                                  algorithms (TLS
+                                                  settings)
+
+  Used for        Verifying CA roots, importing   Auditing encryption
+                  certs                           setup and security
+  -----------------------------------------------------------------------
+
+Comparsion of cipher suits on tls/ssl version:
+
+[]
+
+HSTS:
+
+Enforces HTTPS by instructing browsers to automatically upgrade all HTTP
+requests to secure HTTPS connections. This prevents attacks like
+protocol downgrades and cookie hijacking that exploit unsecured HTTP.
+
+-   The max-age directive defines how long this policy remains active.
+
+-   while includeSubDomains extends protection to all subdomains.
+
+-   Domains can also be added to browser HSTS Preload Lists to ensure
+    HTTPS from the first visit.
+
+Supported by all major browsers, HSTS is essential for securing web
+traffic and protecting user data from interception and tampering.
+
+Section 8: Understanding Vulnerabilities:
+
+MIMT attack:
+
+Occurs when an attacker secretly intercepts and potentially alters
+communication between two parties, such as a user and a website. By
+positioning themselves between the two, the attacker can eavesdrop,
+steal sensitive data, manipulate messages etc.
+
+SSL Stripping:
+
+  A type of MITM attack where a secure HTTPS connection is downgraded to
+  an insecure HTTP one. [see upper MIMT meant]
+
+Mitigation/Solutions:
+
+-   HSTS Development.
+
+-   Preloaded HSTS:
+
+-   Browser Warnings:
+
+-   Increased HTTPS Adoption:
+
+POODLE
+
+POODLE targets outdated SSL 3.0, exploiting weak padding in CBC
+encryption. By manipulating encrypted blocks and analyzing server
+responses, attackers decrypt session data byte by byte a slow but
+effective method.
+
+[]
+
+Quantum Computing:
+
+Is a new type of computing that uses the strange and powerful principles
+of quantum physics to process information in ways classical computers
+cannot. Unlike traditional computers that use bits (0s and 1s)
+
+Quantum computers use quantum bits or qubits, Properties like:
+
+-   superposition (where qubits can be 0 and 1 at the same time).
+
+-   entanglement (where qubits become linked so the state of one
+    instantly influences another).
+
+::Quantum computers can explore many possibilities simultaneously.
+
+This puts current internet security at risk because:
+
+-   Shor’s Algorithm: Can quickly break the two main ways websites
+    exchange secret keys RSA and ECC used in secure connections.
+
+-   Grover’s Algorithm: Can speed up guessing the secret keys that
+    scramble data, making encryption like AES-128 much weaker. That’s
+    why experts suggest using AES-256, which is much harder to break.
+
+If strong quantum computers arrive, hackers might be able to:
+
+-   Decrypt old secure messages: By breaking the keys that protected
+    them, enabling “HNDL” attacks that compromise past confidential
+    communications.
+
+-   Fake website: By breaking the digital signatures and forge it.
+
+-   Make current encryption weaker.
+
+More Vulnerabilities:
+
+-   HEARTBLEED
+
+-   DROWN
+
+-   CRIME
+
+-   Weak cipher
+
+Free Speech:
+
+First Words:
+
+Previous paper offers a brief overview of the Caesar Cipher and other
+multiple substitution ciphers, explaining their encoding and decoding
+processes. The content has been carefully refined to reflect the work
+conducted, while preserving the Rubik’s Cube in upper Sections will be
+our focus or approach.
+
+An early mistake in this project was approaching the research as an
+informal learning exercise writing freely as I normally think rather
+than applying the academic rigor and structured methodology required for
+formal research.
+
+Source Code:
+
+Index.html
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>Bank of Trust - Secure Login</title>
+
+<style>
+
+body {
+
+font-family: Arial, sans-serif;
+
+background-color: #f2f2f2;
+
+display: flex;
+
+justify-content: center;
+
+align-items: center;
+
+height: 100vh;
+
+}
+
+.login-container {
+
+background-color: white;
+
+padding: 40px;
+
+border-radius: 10px;
+
+box-shadow: 0px 0px 15px rgba(0,0,0,0.1);
+
+}
+
+h2 {
+
+text-align: center;
+
+color: #333;
+
+}
+
+input[type="text"],
+
+input[type="password"] {
+
+width: 100%;
+
+padding: 12px 10px;
+
+margin: 8px 0;
+
+border: 1px solid #ccc;
+
+border-radius: 6px;
+
+box-sizing: border-box;
+
+}
+
+button {
+
+width: 100%;
+
+background-color: #3498db;
+
+color: white;
+
+padding: 12px;
+
+border: none;
+
+border-radius: 6px;
+
+cursor: pointer;
+
+font-size: 16px;
+
+}
+
+button:hover {
+
+background-color: #2980b9;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="login-container">
+
+<h2>Bank of Trust Login</h2>
+
+<form method="POST" action="#">
+
+<label for="username">Username</label>
+
+<input type="text" name="username" id="username" required>
+
+<label for="password">Password</label>
+
+<input type="password" name="password" id="password" required>
+
+<button type="submit">Login</button>
+
+</form>
+
+</div>
+
+</body>
+
+</html>
+
+Bankoftrust-ssl.conf
+
+<VirtualHost *:443>
+
+ServerAdmin admin@bankoftrust.com
+
+ServerName bankoftrust.com
+
+DocumentRoot /var/www/html
+
+SSLEngine on
+SSLCertificateFile /etc/apache2/ssl/apache-selfsigned.crt
+SSLCertificateKeyFile /etc/apache2/ssl/apache-selfsigned.key
+Header always set Strict-Transport-Security "max-age=63072000"
+ErrorLog ${APACHE_LOG_DIR}/error.log
+CustomLog ${APACHE_LOG_DIR}/access.log combined
